@@ -37,8 +37,11 @@ const readSelectors = (filePath) => {
   // Read CSS selectors from the file
   const selectors = await readSelectors('selectors.txt');
 
+  // Test for each page url
   for (let url of urls) {
+	  
 	console.log(`Checking URL: ${url}`);
+	
     await page.goto(url, { waitUntil: 'networkidle2' });
 
     // Different screen sizes
@@ -48,34 +51,11 @@ const readSelectors = (filePath) => {
       { width: 375, height: 667 }    // Mobile
     ];
 
+	// Test for each screen size
     for (let size of screenSizes) {
 	  console.log(`Checking for screen size ${size.width}x${size.height}`);
       await page.setViewport(size);
-
-      // Download HTML
-      const html = await page.content();
-      fs.writeFileSync(`output/${url.split('/').pop()}_${size.width}x${size.height}.html`, html);
-
-      // Extract and save CSS
-      const css = await page.evaluate(() => {
-        let styles = '';
-        for (const sheet of document.styleSheets) {
-          if (sheet.href) {
-            // Download external stylesheets
-            fetch(sheet.href).then(response => response.text()).then(data => styles += data);
-          } else {
-            // Inline styles
-            for (const rule of sheet.cssRules) {
-              styles += rule.cssText;
-            }
-          }
-        }
-        return styles;
-      });
-      fs.writeFileSync(`output/${url.split('/').pop()}_${size.width}x${size.height}.css`, css);
 	  
-	  // Read CSS selectors from the file
-	  const selectors = await readSelectors('selectors.txt');
       let allSelectorsExist = true;
 	  
 	  for (let selector of selectors) {
