@@ -56,10 +56,17 @@ const readSelectors = (filePath) => {
 	  console.log(`Checking for screen size ${size.width}x${size.height}`);
       await page.setViewport(size);
 	  
+	  // This element exists for all page sizes, so when we can find it we know the page has loaded.
+	  const mainNavSelector = '#O365_MainLink_NavMenu';
+	  let pageLoaded = await page.waitForSelector(mainNavSelector, { timeout: 10000 });
+	  if (pageLoaded == null) {
+		console.error(`Unable to verify page loaded. Coudln't find ${mainNavSelector}`);
+	  }
+	  
       let allSelectorsExist = true;
 	  
 	  for (let selector of selectors) {
-        const elementExists = await page.$(selector) !== null;
+        const elementExists = await page.waitForSelector(selector, { timeout: 5000 }) !== null;
 
         if (elementExists) {
           console.log(`✅ Element found for selector: ${selector} at ${size.width}x${size.height}`);
