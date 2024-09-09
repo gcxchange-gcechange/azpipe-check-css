@@ -12,10 +12,18 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
+- task: NodeTool@0
+  inputs:
+    versionSpec: '14.x'
+  displayName: 'Install Node.js'
+  
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    npm install puppeteer
+  displayName: 'Install Puppeteer'
+  
+- task: Bash@3
+  displayName: 'Verify Selectors'
+  inputs:
+    targetType: 'inline'
+    script: |
+      node verifyPage.js
