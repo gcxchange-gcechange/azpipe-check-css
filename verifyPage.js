@@ -60,25 +60,38 @@ const testSpecs = createScreenArrayFromFiles();
 // Use puppeteer to go through the initial login process
 const login = async (page) => {
   try {
-    await page.goto(loginPage, { waitUntil: 'networkidle2' });
-
-    // email
-    await page.waitForSelector(`input[type="email"]`);
-    await page.type('input[type="email"]', userEmail);
-    await page.click('input[type="submit"]');	
-
-    // password
     await Promise.all([
-      page.waitForSelector('input[type="password"]', { visible: true }),
-      page.type('input[type="password"]', userPass),
-      page.click('input[type="submit"]'),
-      page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' }),
+      page.goto(loginPage, { waitUntil: 'networkidle2' }),
+      page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' })
     ]);
 
-    await skipMFA(countMFA++);
+    // email
+    // await Promise.all([
+    //   page.waitForSelector(`input[type="email"]`),
+    //   page.type('input[type="email"]', userEmail),
+    //   page.click('input[type="submit"]')
+    // ]);
+    await page.waitForSelector(`input[type="email"]`);
+    await page.type('input[type="email"]', userEmail);
+    await page.click('input[type="submit"]');
+    await page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' });
+
+    // password
+    // await Promise.all([
+    //   page.waitForSelector('input[type="password"]', { visible: true }),
+    //   page.type('input[type="password"]', userPass),
+    //   page.click('input[type="submit"]'),
+    //   page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' })
+    // ]);
+    await page.waitForSelector('input[type="password"]', { visible: true });
+    await page.type('input[type="password"]', userPass);
+    await page.click('input[type="submit"]');
+    await page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' });
+
+    await skipMFA(page, countMFA++);
   }
   catch(e) {
-    console.error('Failed to login');
+    console.error(`Failed to login: ${e.message}`);
   }
 }
 
@@ -92,26 +105,27 @@ const skipMFA = async (page, attempts) => {
     await Promise.all([
       page.waitForSelector('div#displayName.identity', { visible: true }),
       page.click('input[type="submit"]'),
+      page.waitForResponse(response => response.url().includes('mysignins.microsoft.com')),
       page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' }),
+      page.waitForSelector('hr.ms-Divider + div > a')
     ]);
 
     // skip setup
     await Promise.all([
       page.waitForSelector('span.ms-tenantName', { visible: true }),
       page.waitForSelector('.ms-Card', { visible: true }),
-      page.$x("//a[contains(., 'Skip setup')]"),
-      page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' }),
+      page.click('hr.ms-Divider + div > a'),
+      page.waitForResponse(response => response.url().includes('/ProcessAuth')),
+      page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' })
     ]);
 
     // stay signed in
-    if (page.url().endsWith('ProcessAuth')) {
-      await Promise.all([
-        page.waitForSelector('input[type="checkbox"]', { visible: true }),
-        page.click('input[type="checkbox"]'),
-        page.click('input[type="submit"]'),
-        page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' }),
-      ]);
-    }
+    await Promise.all([
+      page.waitForSelector('input[type="checkbox"]', { visible: true }),
+      page.click('input[type="checkbox"]'),
+      page.click('input[type="submit"]'),
+      page.waitForNavigation({ timeout: 30000, waitUntil: 'networkidle2' })
+    ]);
   }
   catch (e) {
     console.error(`Failed to skip MFA after ${attempts} attempts.`);
@@ -120,10 +134,10 @@ const skipMFA = async (page, attempts) => {
 
 // The main puppeteer script to test our selectors for various page sizes
 (async () => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({headless: false});
   const page = await browser.newPage();
 
-  await login();
+  await login(page);
 
   page.on('framenavigated', async () => {
     let currentUrl = page.url();
@@ -131,7 +145,7 @@ const skipMFA = async (page, attempts) => {
 
     // If we get stuck in the cycle of having to enable MFA
     if (currentUrl.includes('login.microsoftonline.com')) {
-      await skipMFA(page, countMFA++);
+      //await skipMFA(page, countMFA++);
     }
   });
 

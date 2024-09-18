@@ -4,7 +4,8 @@ A pipeline to check the CSS on various SharePoint pages to verify selectors are 
 ### Setup
 - Add the SharePoint URLs you want to test to the **urls** array in [verifyPage.js](https://github.com/gcxchange-gcechange/azpipe-check-css/blob/main/verifyPage.js)
 	- Example `'https://devgcx.sharepoint.com/'`
-- Add any screen sizes you want to test to the **screenSizes** array in [verifyPage.js](https://github.com/gcxchange-gcechange/azpipe-check-css/blob/main/verifyPage.js). 
-	- The array expects objects formatted like `{ width: 1920, height: 1080 }`
-- Add the CSS selectors you want to verify to the [selectors.txt](https://github.com/gcxchange-gcechange/azpipe-check-css/blob/main/selectors.txt). 
-	- Each selector should be on a new line within the file.
+- Add a .txt file with the named format `widthxheight.txt` to the [selectors folder](https://github.com/gcxchange-gcechange/azpipe-check-css/blob/main/selectors)
+	- Each selector should be on a new line within the text file.
+
+### Run Locally
+Using Node.js v18.x, run the command `npm install`, then `node verifyPage.js`

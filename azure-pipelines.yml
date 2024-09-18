@@ -26,4 +26,4 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      node verifyPage.js "#O365_MainLink_NavMenu"
+      node verifyPage.js
