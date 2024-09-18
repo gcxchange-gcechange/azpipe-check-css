@@ -18,7 +18,7 @@ steps:
   displayName: 'Install Node.js'
   
 - script: |
-    npm install puppeteer
+    npm install puppeteer@23.3.0
   displayName: 'Install Puppeteer'
   
 - task: Bash@3
@@ -26,4 +26,4 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      node verifyPage.js
+      node verifyPage.js "#O365_MainLink_NavMenu"
